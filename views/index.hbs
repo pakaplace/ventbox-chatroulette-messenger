@@ -1,25 +1,57 @@
-<h1>{{title}}</h1>
-<p>Welcome to {{title}}</p>
-<p><input type="button" value="depression" id="topic" /> </p>
-<p><input type="button" value="academicStress" id="topic" /> </p>
-<p><input type="button" value="relationships" id="topic"/> </p>
-<p><input type="button" value="other" id="topic"/> </p>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Welcome to {{title}}</title>
+  <p>Select a topic to talk about and we'll find you a partner</p>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+	<ul><input type="radio" value="depression" id="topic" /> </ul>
+	<ul><input type="radio" value="academicStress" id="topic" /> </ul>
+	<ul><input type="radio" value="relationships" id="topic"/> </ul>
+	<ul><input type="radio" value="other" id="topic"/> </ul>
+	<ul><p>What is the first 5 digits of your student id?</p>
+	<ul><input type="text" placeholder="i.e. 11660" id="topic"/> </ul>
+	<ul><p>What is your desired screen name?</p>
+	<ul><input type="text" id="name"/> </ul>
 
-<script src="http://code.jquery.com/jquery-3.2.0.min.js"></script>
-<script src="/socket.io/socket.io.js"></script>
-<script>
-	var idCheck = prompt("What's the first 5 digits of your CUHK id?")
-	var username = prompt("Choose a username?")
-  	var socket = io('//localhost:3000');
+	<ul><input type="button" value="join" id="join"/>Join </ul>
 
-    socket.emit('user', username);
-    socket.emit('idCheck', idCheck);
-    socket.on('greeting', function(message, id){
-    	console.log("The server says... ", message, " and your socket id is... ", id)
-    })
+	<ul class="pages">
+	    <li class="chat page">
+	      <div class="chatArea">
+	        <ul class="messages"></ul>
+	      </div>
+	      <input class="inputMessage" placeholder="Type here..."/>
+	    </li>
+	    <!-- <li class="login page">
+	      <div class="form">
+	        <h3 class="title">What's your nickname?</h3>
+	        <input class="usernameInput" type="text" maxlength="14" />
+	      </div>
+	    </li> -->
+	  </ul>
 
-    $("#topic").click(function(topicChoice){
-    	socket.emit('choseTopic', $("#topic").val())
-    })
+	<script src="http://code.jquery.com/jquery-3.2.0.min.js"></script>
+	<script src="/socket.io/socket.io.js"></script>
+	<script>
+		var idCheck = prompt("What's the first 5 digits of your CUHK id?")
+		var username = prompt("Choose a username?")
+	  	var socket = io('//localhost:3000');
 
-</script>
+	    socket.emit('user', username);
+	    socket.emit('idCheck', idCheck);
+	    socket.on('greeting', function(message, id){
+	    	console.log("The server says... ", message, " and your socket id is... ", id)
+	    })
+	    $("#topic").click(function(){
+	    	socket.emit('choseTopic', $("#topic").val())
+	    })
+	    $("#join").click(function(){
+	    	socket.emit('join', {name: $("#name").val(), id: $("#id").val()})
+	    })
+
+	</script>
+</body>
+</html>
