@@ -54,54 +54,48 @@ if (app.get('env') === 'development') {
 }
 
 //open tok
-var OpenTok = require('opentok'), opentok = new OpenTok("45799882", "68f33a17962141a79f1e652ede44751952174e8b")
-var soloUsers = {depression: [], academicStress:[], relationships: [], other:[]} //users from each category who haven't been paired
-var rooms = {} //available rooms
+// var OpenTok = require('opentok'), opentok = new OpenTok("45799882", "68f33a17962141a79f1e652ede44751952174e8b")
+// var soloUsers = [{depression: []}, {academicStress:[]}, {relationships: []}, {other:[]}] //users from each category who haven't been paired
+var rooms = {} //rooms by socket1.id+socket2.id
+var queue = []; //array of waiting sockets
+var allUsers = {}; //contains sockets, key is socket.id
 
-
+var findPartnerSocket = function(socket){
+  if(queue && queue[socket.id].userTopic === socket.userTopic){
+    var peer = queue.pop();
+    var room = socket.id+peer.id;
+    peer.join(room)
+    socket.join(room)
+    socket.room = room;
+    peer.room = room;
+    //peer.emit("chat start", {'name': names}) see if socket.broadcast works first
+    socket.broadcast.to(room).emit('message', "Welcome!")
+    socket.emit("chatStart", {'name': socket.id, 'room': room})
+    peer.emit("chatStart", {'name': peer.id, 'room': room})
+  }
+  else{
+    queue.push(socket)
+  }
+}
 io.on('connection', function (socket) {
   console.log("connected yo.... socketData-", socket.id)
+  
+  //sets username
   socket.on('user', function(username){
-  this.username = username;
+    this.username = username;
     console.log("The user's name is... ", username, " SOCKET.USERNAME... ", socket.username)
   })
-  
+  //stores users in solo users array by topic and deletes them from previous array
   socket.on('choseTopic', function(userTopic) {
-    console.log("The chosen topic is.... ", userTopic);
-    this.userTopic = userTopic;
-    soloUsers[userTopic].push({username: this.username, socketId: this.id})
+    console.log("User chose.... ", userTopic);
+    allUsers[this.id] = socket;
+    console.log("Switched user topic and deleted old user store")
   });
 
-  if(socket.userTopic){
-    var partner;
-    var partnerSocket;
-    for (var i = 0; i < soloUsers.length; i++) {
-        var newPartner = soloUsers[i];
-        if(socket.id === soloPartner.id){
-          continue;
-        }
-
-        // Make sure our last partner is not our new partner
-        if (socket.partner != newPartner) {              
-          // Get the socket client for this user
-          partnerSocket = rooms[newPartner.socketId];
-
-          // Remove the partner we found from the list of solo users
-          soloUsers.splice(i, 1);
-
-          // If the user we found exists...
-          if (partnerSocket) {
-            // Set as our partner and quit the loop today
-            partner = newPartner;
-            break;
-          }
-        }
-      }
-  }
-
-  socket.on('room', function(room) {
-        socket.join(room);
-    });
+  socket.on('join', function(socket) {
+    allUsers[socket.id] = socket;
+    findPartnerSocket(socket)
+  });
 
   
   socket.on('idCheck', function(id){
