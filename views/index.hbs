@@ -1,0 +1,25 @@
+<h1>{{title}}</h1>
+<p>Welcome to {{title}}</p>
+<p><input type="button" value="depression" id="topic" /> </p>
+<p><input type="button" value="academicStress" id="topic" /> </p>
+<p><input type="button" value="relationships" id="topic"/> </p>
+<p><input type="button" value="other" id="topic"/> </p>
+
+<script src="http://code.jquery.com/jquery-3.2.0.min.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+	var idCheck = prompt("What's the first 5 digits of your CUHK id?")
+	var username = prompt("Choose a username?")
+  	var socket = io('//localhost:3000');
+
+    socket.emit('user', username);
+    socket.emit('idCheck', idCheck);
+    socket.on('greeting', function(message, id){
+    	console.log("The server says... ", message, " and your socket id is... ", id)
+    })
+
+    $("#topic").click(function(topicChoice){
+    	socket.emit('choseTopic', $("#topic").val())
+    })
+
+</script>
