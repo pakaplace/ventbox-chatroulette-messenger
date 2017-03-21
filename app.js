@@ -61,9 +61,16 @@ var queue = []; //array of waiting sockets
 var allUsers = {}; //contains sockets, key is socket.id
 
 var findPartnerSocket = function(socket){
-  if(queue && queue[socket.id].userTopic === socket.userTopic){
+  if(socket.verified && queue){
+      var match = false;
+      queue.forEach(peer){
+        if(peer.userTopic === socket.userTopic){
+          match= true
+        }
+      }
+    if(match === false){break}
     var peer = queue.pop();
-    var room = socket.id+peer.id;
+    var room = socket.id+"&"+peer.id;
     peer.join(room)
     socket.join(room)
     socket.room = room;
@@ -81,36 +88,48 @@ io.on('connection', function (socket) {
   console.log("connected yo.... socketData-", socket.id)
   
   //sets username
-  socket.on('user', function(username){
-    this.username = username;
-    console.log("The user's name is... ", username, " SOCKET.USERNAME... ", socket.username)
-  })
+  // socket.on('user', function(username){
+  //   this.username = username;
+  //   console.log("The user's name is... ", username, " SOCKET.USERNAME... ", socket.username)
+  // })
   //stores users in solo users array by topic and deletes them from previous array
   socket.on('choseTopic', function(userTopic) {
     console.log("User chose.... ", userTopic);
-    allUsers[this.id] = socket;
+    socket.userTopic = userTopic;
+    allUsers[this.id] = socket; 
     console.log("Switched user topic and deleted old user store")
   });
-
-  socket.on('join', function(socket) {
-    allUsers[socket.id] = socket;
-    findPartnerSocket(socket)
-  });
-
   
   socket.on('idCheck', function(id){
-    if(id === "11550"){
-      console.log("Valid user")
-    }
+    id === "11550" ? socket.verified = true : socket.verified = false;
+    allUsers[this.id] = socket;
   })
-
-  socket.on( 'message', function( msg ){
-    
-    console.log( this.username + " said " + msg);
-  });
 
   socket.emit('greeting', "Hello from Ventbox", socket.id)
 
+  socket.on( 'message', function(msg){
+    var room = rooms[socket.id];
+    socket.broadcast.to(room).emit('message', data);
+    console.log(this.username + " said " + msg);
+  });
+
+  socket.on('leave room', function(){
+        var room = rooms[socket.id];
+        socket.broadcast.to(room).emit('chat end');
+        var peerID = room.split('&');
+        peerID = peerID[0] === socket.id ? peerID[1] : peerID[0];
+        // add both current and peer to the queue
+        findPeerForLoneSocket(allUsers[peerID]);
+        findPeerForLoneSocket(socket);
+  });
+  socket.on('disconnect', function(){
+      var room = rooms[socket.id];
+      socket.broadcast.to(room).emit('chat end');
+      var peerID = room.split('&');
+      peerID = peerID[0] === socket.id ? peerID[1] : peerID[0];
+      // disconnect socket that left, find peer for lonely socket
+      findPeerForLoneSocket(allUsers[peerID]);
+  });
 });
 
 // production error handler
