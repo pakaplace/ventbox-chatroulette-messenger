@@ -7,16 +7,17 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-	<ul><input type="radio" value="depression" id="topic" /> </ul>
-	<ul><input type="radio" value="academicStress" id="topic" /> </ul>
-	<ul><input type="radio" value="relationships" id="topic"/> </ul>
-	<ul><input type="radio" value="other" id="topic"/> </ul>
-	<ul><p>What is the first 5 digits of your student id?</p>
-	<ul><input type="text" placeholder="i.e. 11660" id="topic"/> </ul>
-	<ul><p>What is your desired screen name?</p>
+	<ul><input type="radio" value="depression" id="topic" /> Depression</ul>
+	<ul><input type="radio" value="academicStress" id="topic" /> Academic Stress </ul>
+	<ul><input type="radio" value="relationships" id="topic"/> Relationships </ul>
+	<ul><input type="radio" value="other" id="topic"/> Everything else</ul>
+	<ul><p>What is the first 5 digits of your student id?</p></ul>
+	<ul><input type="text" placeholder="i.e. 11660" id="studentId"/> </ul>
+	<ul><p>Entire desired screenname below</p></ul>
 	<ul><input type="text" id="name"/> </ul>
-
 	<ul><input type="button" value="join" id="join"/>Join </ul>
+	<ul><input type="button" value="leave room" id="leave"/> Leave room</ul>
+
 
 	<ul class="pages">
 	    <li class="chat page">
@@ -36,22 +37,35 @@
 	<script src="http://code.jquery.com/jquery-3.2.0.min.js"></script>
 	<script src="/socket.io/socket.io.js"></script>
 	<script>
-		var idCheck = prompt("What's the first 5 digits of your CUHK id?")
-		var username = prompt("Choose a username?")
-	  	var socket = io('//localhost:3000');
-
-	    socket.emit('user', username);
-	    socket.emit('idCheck', idCheck);
+		// var idCheck = prompt("What's the first 5 digits of your CUHK id?")
+		// var username = prompt("Choose a username?")
+	  	var socket = io('http://localhost:3000');
+	    socket.on('waitingForPartner', function(message){
+	    	alert("Waiting for a match. Please wait a moment")
+	    })
 	    socket.on('greeting', function(message, id){
 	    	console.log("The server says... ", message, " and your socket id is... ", id)
 	    })
+	    socket.on('chat start', function(data) {
+		    room = data.room;
+		    alert("Partner has been found"); // some method which will show chat window
+		});
+		socket.on('chat end', function(data) {
+    		hide_chat_window(); // this will close chat window and alert user that the peer ended chat
+    		socket.leave(room); // it's possible to leave from both server and client, hoever it is better to be done by the client in this case
+    		room = '';
+		});
 	    $("#topic").click(function(){
 	    	socket.emit('choseTopic', $("#topic").val())
 	    })
 	    $("#join").click(function(){
-	    	socket.emit('join', {name: $("#name").val()})
+	    	console.log("#JOIN~~~~~~~~~~~~~")
+	    	socket.emit('join', {name: $("#name").val(), studentId: $("#studentId").val()})
+	    	console.log("JOIN emitted", $("#name").val()," ", $("#studentId").val() )
 	    })
-
+	    $("#leave").click(function(){
+	    	socket.emit('leaveRoom', {name: $("#name").val()})
+	    })
 	</script>
 </body>
 </html>
