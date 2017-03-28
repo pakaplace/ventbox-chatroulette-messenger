@@ -49,7 +49,7 @@
 		var roomId = '';
     var peerName;
 
-	  	var socket = io('http://localhost:3000', {reconnection: false});
+	  	var socket = io(process.env.PORT, {reconnection: false});
 	    socket.on('waitingForPartner', function(message){
 	    	alert(message)
 	    })
