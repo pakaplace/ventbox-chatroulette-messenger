@@ -43,10 +43,11 @@
 		var connected = false;
 		var username = 'Anonymous';
 		var roomId = '';
+    var peerName;
 
-	  	var socket = io('http://localhost:3000');
+	  	var socket = io('http://localhost:3000', {reconnection: false});
 	    socket.on('waitingForPartner', function(message){
-	    	alert("Waiting for a match. Please wait a moment")
+	    	alert(message)
 	    })
 
 	    socket.on('greeting', function(message, id){
@@ -54,18 +55,19 @@
 	    })
 
 	    socket.on('chatStart', function(data) { 
-		    roomId = data.roomIdId;
+		    roomId = data.roomId;
+        peerName = data.peerName;
 		    alert("Partner has been found"); // some method which will show chat window
   		});
 
   		socket.on('chatEnd', function(data) {
-      		hide_chat_window(); // TO DO this will close chat window and alert user that the peer ended chat
+      		// hide_chat_window(); // TO DO this will close chat window and alert user that the peer ended chat
       		socket.leave(roomId); // can leavefrom both server and client, client is better
       		roomId = '';
   		});
-      socket.on('message', function(msg){
-        console.log("reached")
-        $('#messages').append($('<li>').text(msg));
+      socket.on('message', function(msg){ //{message, senderId}
+        console.log("client side message", msg.message)
+        $('#messages').append($('<li>').text(msg.message));
       });
   		var leave_chat = function() { // call this when user want to end current chat
   		    if (connected) {
@@ -85,9 +87,9 @@
 	    })
 
       $(function () {
-        var socket = io();
         $('form').submit(function(){
-          socket.emit('message', $('#m').val());
+          $('#messages').append($('<li>').text($('#m').val()));
+          socket.emit('message', {"message": $('#m').val(), "senderId": socket.id});
           $('#m').val('');
           return false;
         });

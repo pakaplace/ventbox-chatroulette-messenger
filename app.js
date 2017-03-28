@@ -67,84 +67,64 @@ function isEmpty(obj) {
     return Object.keys(obj).length === 0;
 }
 var findPartnerSocket = function(socket){
-  console.log("FINDing PARTNER SOCKET ")
+  var client =allUsers[socket.id]
+  var peer;
   if(socket.verified && !isEmpty(queue)){ //queue will be full every time
     console.log("inside queue~~~~   ", queue)
       var match = false;
       for(id in queue){
-        var peer = queue[id]
-        console.log("ID~~~~~~", id, "  Peer~~~~~", peer)
-        console.log("peer.topic ", peer.topic, " socket.topic ", socket.topic)
-        if(peer.topic === socket.topic){
-          console.log()
+        peer = queue[id]
+        // console.log("ID~~~~~~", id, "  Peer~~~~~", peer)
+        // console.log("peer.topic ", peer.topic, " socket.topic ", socket.topic)
+        if(peer.topic === client.topic){
           match = true
-          peerId = id;
-          console.log("peer id line 74ish~~~ ", peerId)
+          break
         }
       }
-      // queue.forEach(function(peer){
-      //   if(peer.topic === socket.topic){
-      //     match = true
-      //     peerId = peer.id;
-      //     console.log("peer id line 74~~~"+ peerId)
-      //   }
-      // })
     if(match === false){
       console.log("no match found, pushing ", socket.id, " to queue");
       queue[socket.id] = socket;
       socket.emit("waitingForPartner", "Waiting for another partner. One moment please")
     }
     else{ //if there is a match, do this
-      console.log("peer id line 82~~ ", peerId);
-      console.log("QUEUE >>", queue)
-      var peer = allUsers[peerId];
-      console.log("matching two lonely sockets, the peer is... ", peer)
-      delete queue[peerId]; // FIND BETTER WAY TO ORGANIZE QUEUE
-      console.log("NEW QUEUE ", queue)
+      var peer = allUsers[peer.id];
+      console.log("matching two lonely sockets, the peerId is... ", peer.id)
+      delete queue[peer.id]; 
       var roomId = socket.id+"&"+peer.id;
       peer.join(roomId);
       socket.join(roomId);
-      console.log("socket and peer joined roomId number ", roomId)
-      socket.roomId = roomId;
-      peer.roomId = roomId;
-      console.log("Chat initiated")
-      socket.broadcast.to(roomId).emit('message', "Welcome! You've chosen to discuss depression. Fun stuff!")
+      console.log("socketID "+socket.id+" and peer " + peer.id, " joined roomId number ", roomId)
+      allUsers[socket.id].roomId = roomId;
+      allUsers[peer.id].roomId = roomId;
+      socket.broadcast.to(roomId).emit('message', {"message": "Welcome! You've chosen to discuss depression. Fun stuff!"})
       socket.emit("chatStart", {'peerName': peer.name, 'roomId': roomId})
-      peer.emit("chatStart", {'peerName': socket.name, 'roomId': roomId})
+      peer.emit("chatStart", {'peerName': allUsers[socket.id].name, 'roomId': roomId})
     }
   }
   else{
-    console.log("SOCKET~~ ", socket)
-    console.log("pushing socket to queue~~ ", " name ", socket.name, " id ,", socket.id, " topic ",  socket.topic)
+    console.log("pushing socket " + socket.id, " to queue")
     queue[socket.id] = socket
   }
 }
 io.on('connection', function (socket) {
-  console.log("connected socket.... socketData-", socket.id)
+  console.log("connected to socket ", socket.id)
   
   socket.on('join', function(data){
-    console.log("heya")
+    console.log("new user joined")
     this.name = data.name;
     this.topic = data.topic;
-    console.log("user topic in server join")
     data.studentId === "a" ? this.verified = true : this.verified = false;
     allUsers[this.id] = socket;
     findPartnerSocket(socket);
   })
 
-// INDLUDED on JOIN
-  // socket.on('idCheck', function(id){
-  //   id === "a" ? socket.verified = true : socket.verified = false;
-  //   allUsers[this.id] = socket;
-  // })
-
   socket.emit('greeting', "Hello from Ventbox", socket.id) // only SENDS TO INDIVIDUAL NOT THE ROOM
 
-  socket.on( 'message', function(msg){
-    var room = this.roomId;
-    console.log("ROOM~~~ ", room)
-    socket.broadcast.to(room).emit('message', msg);
-    console.log(this.name + " said " + msg);
+  socket.on('message', function(msgObj){
+    console.log("Server side message")
+    var roomId = allUsers[socket.id].roomId;
+    // console.log("allUsers ", allUsers, "socket.id", socket.id, " room mane ", room);
+    socket.broadcast.to(roomId).emit('message', {"message": msgObj.message, "senderId": msgObj.id });
   });
 
   socket.on('leaveRoom', function(){
@@ -166,6 +146,13 @@ io.on('connection', function (socket) {
       findPartnerSocket(allUsers[peerID]);
   });
 });
+// connected socket.... socketData- qhmiDUMGwF9pZOdXAAAB
+// connected socket.... socketData- Ifp2W2kUijbn3MrqAAAC //second socket
+// connected socket.... socketData- 1Q4rjhfMSp7yAc5iAAAD
+//qhmiDUMGwF9pZOdXAAAB socket.id
+// pushing socket ETYqAPw0oSNLPR9eAAAA  to queue
+//ETYqAPw0oSNLPR9eAAAA allUsers
+
 
 // production error handler
 // no stacktraces leaked to user
