@@ -13,6 +13,7 @@
       form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
       form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
       form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
+      p.class{  }
       #messages { list-style-type: none; margin: 0; padding: 0; }
       #messages li { padding: 5px 10px; }
       #messages li:nth-child(odd) { background: #eee; }
@@ -20,20 +21,23 @@
 
 </head>
 <body>
+  <p class="topics"> Topics </p>
 	<ul><input type="radio" name = "topic" value="depression" id="topic" /> Depression</ul>
 	<ul><input type="radio" name = "topic" value="academicStress" id="topic" /> Academic Stress </ul>
 	<ul><input type="radio" name = "topic" value="relationships" id="topic"/> Relationships </ul>
 	<ul><input type="radio" name = "topic" value="other" id="topic"/> Everything else</ul>
 	<p>What is the first 5 digits of your student id?</p>
 	<input type="text" placeholder="i.e. 11660" id="studentId"/> 
-	<p>Entire desired screenname below</p>
+	<p class = "name">Username</p>
 	<input type="text" id="name"/> 
-	<input type="button" value="join" id="join"/>Join 
-	<input type="button" value="leave room" id="leaveRoom"/> Leave room
-<ul id="messages"></ul>
+	<input type="button" value="Join" id="join"/>
+	<input type="button" value="Leave room" id="leaveRoom"/> 
+<div class = "chatWindow">
+<ul id="messages" visibility='hidden'></ul>
     <form action="">
       <input id="m" autocomplete="off" /><button>Send</button>
     </form>
+</div>
 </body>
 	<script src="http://code.jquery.com/jquery-3.2.0.min.js"></script>
 	<script src="/javascripts/jquery.mCustomScrollbar.concat.min.js"></script>
@@ -41,7 +45,7 @@
 <!-- 	<script type="text/javascript" src="/javascripts/chat.js"></script>
  -->	<script>
 		var connected = false;
-		var username = 'Anonymous';
+		var username = '';
 		var roomId = '';
     var peerName;
 
@@ -50,18 +54,29 @@
 	    	alert(message)
 	    })
 
+      socket.on('connect', function (data) { // we are connected, should send our name
+        connected = true;
+      });
+
+      socket.on('verificationFailed', function(){
+        alert("Your CUHK ID is not valid, please try again");
+      })
+
 	    socket.on('greeting', function(message, id){
 	    	console.log("The server says... ", message, " and your socket id is... ", id)
 	    })
 
 	    socket.on('chatStart', function(data) { 
+        $("#messages").css('visibility', 'visible')
+        $("#join").hide();
 		    roomId = data.roomId;
         peerName = data.peerName;
 		    alert("Partner has been found"); // some method which will show chat window
   		});
 
-  		socket.on('chatEnd', function(data) {
-      		// hide_chat_window(); // TO DO this will close chat window and alert user that the peer ended chat
+  		socket.on('chatEnd', function(msg) {
+          $('#messages').append($('<li>').text(msg));
+          $("#join").show();
       		socket.leave(roomId); // can leavefrom both server and client, client is better
       		roomId = '';
   		});
@@ -69,21 +84,26 @@
         console.log("client side message", msg.message)
         $('#messages').append($('<li>').text(msg.message));
       });
-  		var leave_chat = function() { // call this when user want to end current chat
-  		    if (connected) {
-  		        socket.emit('leaveRoom');
-  		        socket.leave(roomId);
-  		        roomId = '';
-  		    }
-  		};
 
 	    $("#join").click(function(){
+        if (!$("input[name='topic']:checked").val()){
+          $(".topics").text('Please choose a discussion topic. If you\'re not sure, choose "other"').css('color', 'red')
+          return false
+        }
+        if(!$.trim($("#name").val())){
+          alert("Please enter a username");
+          return false;
+        }
 	    	console.log("#JOIN~~~~~~~~~~~~~")
 	    	socket.emit('join', {name: $("#name").val(), studentId: $("#studentId").val(), topic: $("#topic").val()})
 	    	console.log("JOIN emitted", $("#name").val()," ", $("#studentId").val() )
 	    })
 	    $("#leaveRoom").click(function(){
-	    	socket.emit('leaveRoom');
+        if (connected) {
+              socket.emit('leaveRoom');
+              socket.leave(roomId);
+              roomId = '';
+        }
 	    })
 
       $(function () {
@@ -93,6 +113,15 @@
           $('#m').val('');
           return false;
         });
+      });
+      $('#name').blur(function() { //validates username
+         if(!$.trim($("#name").val())) { // zero-length string AFTER a trim
+            $(".name").text('Please enter a username, it can be anything!').css('color', 'red');
+         }
+         else{
+          username = $("#name").val();
+          $(".name").text("Username")
+         }
       });
 	</script>
 </html>

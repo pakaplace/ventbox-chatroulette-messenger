@@ -96,7 +96,7 @@ var findPartnerSocket = function(socket){
       console.log("socketID "+socket.id+" and peer " + peer.id, " joined roomId number ", roomId)
       allUsers[socket.id].roomId = roomId;
       allUsers[peer.id].roomId = roomId;
-      socket.broadcast.to(roomId).emit('message', {"message": "Welcome! You've chosen to discuss depression. Fun stuff!"})
+      socket.broadcast.to(roomId).emit('message', {"message": "Welcome! You've chosen to discuss "+ socket.topic + " with "+ peer.name +". Don't be shy!"})
       socket.emit("chatStart", {'peerName': peer.name, 'roomId': roomId})
       peer.emit("chatStart", {'peerName': allUsers[socket.id].name, 'roomId': roomId})
     }
@@ -113,7 +113,13 @@ io.on('connection', function (socket) {
     console.log("new user joined")
     this.name = data.name;
     this.topic = data.topic;
-    data.studentId === "a" ? this.verified = true : this.verified = false;
+    if(data.studentId === process.env.CUHK_ID || "11550"){
+      this.verified = true
+    }
+    else{
+      socket.emit("verificationFailed")
+      return;
+    }
     allUsers[this.id] = socket;
     findPartnerSocket(socket);
   })
@@ -123,39 +129,28 @@ io.on('connection', function (socket) {
   socket.on('message', function(msgObj){
     console.log("Server side message")
     var roomId = allUsers[socket.id].roomId;
-    // console.log("allUsers ", allUsers, "socket.id", socket.id, " room mane ", room);
     socket.broadcast.to(roomId).emit('message', {"message": msgObj.message, "senderId": msgObj.id });
   });
 
   socket.on('leaveRoom', function(){
-        var room = rooms[socket.id];
-        socket.broadcast.to(room).emit("chatEnd");
-        var peerID = room.split('&');
+        var roomId = socket.roomId;
+        socket.broadcast.to(roomId).emit("chatEnd");
+        var peerID = roomId.split('&');
         peerID = peerID[0] === socket.id ? peerID[1] : peerID[0];
-        // add both current and peer to the queue
         findPartnerSocket(allUsers[peerID]);
         findPartnerSocket(socket);
   });
   socket.on('disconnect', function(){
-      var room = rooms[socket.id];
-      console.log("ROOM", room);//
-      socket.broadcast.to(room).emit("chatEnd");
-      var peerID = room.split('&');
+      var roomId = socket.roomId;
+      console.log("ROOM ID", roomId);//
+      socket.broadcast.to(roomId).emit("chatEnd", "Chat has ended, finding you a new partner...");
+      var peerID = roomId.split('&');
       peerID = peerID[0] === socket.id ? peerID[1] : peerID[0];
       // disconnect socket that left, find peer for lonely socket
       findPartnerSocket(allUsers[peerID]);
   });
 });
-// connected socket.... socketData- qhmiDUMGwF9pZOdXAAAB
-// connected socket.... socketData- Ifp2W2kUijbn3MrqAAAC //second socket
-// connected socket.... socketData- 1Q4rjhfMSp7yAc5iAAAD
-//qhmiDUMGwF9pZOdXAAAB socket.id
-// pushing socket ETYqAPw0oSNLPR9eAAAA  to queue
-//ETYqAPw0oSNLPR9eAAAA allUsers
 
-
-// production error handler
-// no stacktraces leaked to user
 app.use(function(err, req, res, next) {
   res.status(err.status || 500);
   res.render('error', {
