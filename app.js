@@ -113,7 +113,7 @@ io.on('connection', function (socket) {
     console.log("new user joined")
     this.name = data.name;
     this.topic = data.topic;
-    if(data.studentId === process.env.CUHK_ID || "11550"){
+    if(data.studentId.indexOf(process.env.CUHK_ID)){
       this.verified = true
     }
     else{
@@ -141,6 +141,9 @@ io.on('connection', function (socket) {
         findPartnerSocket(socket);
   });
   socket.on('disconnect', function(){
+      if(!socket.roomId){
+        return false;
+      }
       var roomId = socket.roomId;
       console.log("ROOM ID", roomId);//
       socket.broadcast.to(roomId).emit("chatEnd", "Chat has ended, finding you a new partner...");
