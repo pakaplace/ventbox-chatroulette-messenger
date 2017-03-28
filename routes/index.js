@@ -4,7 +4,7 @@ var router = express.Router();
 /* GET home page. */
 router.get('/', function(req, res, next) {
 
-  res.render('index', { title: 'Ventbox' });
+  res.render('index', { title: 'Ventbox', port: process.env.PORT });
 });
 
 module.exports = router;
