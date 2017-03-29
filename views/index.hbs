@@ -4,9 +4,10 @@
 	<meta charset="UTF-8">
 	  <title>Welcome to {{title}}</title>
 	  <p>Select a topic to talk about and we'll find you a partner</p>
-<!-- 	  <link rel="stylesheet" href="/stylesheets/jquery.mCustomScrollbar.css" />
- --><!-- 	  <link rel="stylesheet" type="text/css" href="/stylesheets/style.css"/>
- -->
+<!-- <link rel="stylesheet" href="/stylesheets/jquery.mCustomScrollbar.css" />
+ --> <link rel="stylesheet" type="text/css" href="/stylesheets/style.css"/>
+ <link rel='stylesheet' id='infinity-fonts-css'  href='//fonts.googleapis.com/css?family=Cormorant+Garamond%3A400%2C400i%2C700%7CRaleway%3A700&#038;ver=1.1.2' type='text/css' media='all' />
+
 	  <style>
 	  * { margin: 0; padding: 0; box-sizing: border-box; }
       body { font: 13px Helvetica, Arial; }
@@ -23,25 +24,26 @@
 
 </head>
 <body>
-  <br>
   <h2 id="topicsHeader">Topics </h2>
-	<ul><input type="radio" name = "topic" value="depression" id="topic" /> Depression</ul>
-	<ul><input type="radio" name = "topic" value="academicStress" id="topic" /> Academic Stress </ul>
-	<ul><input type="radio" name = "topic" value="relationships" id="topic"/> Relationships </ul>
-	<ul><input type="radio" name = "topic" value="other" id="topic"/> Everything else</ul>
-  <br>
-	<h2 id = "studentIdHeader">What is the first 5 digits of your student id?</h2>
-	<input type="text" placeholder="i.e. 11660" id="studentId"/> 
-	<h2 class = "name">Username</h2>
-	<input type="text" id="name"/> 
-	<input type="button" value="Join" id="join"/>
-	<input type="button" value="Find New Partner" id="leaveRoom"/> 
-  <div class="chatWindow" id = "chatWindow" visibility = "hidden">
-    <ul id="messages" visibility='hidden'></ul>
-        <form action="">
-          <input id="m" autocomplete="off" /><button>Send</button>
-        </form>
-  </div>
+<p class="nobottommargin"><input type="radio" name="topic" value="depression" id="topic"> Depression</p>
+<p class="nobottommargin"><input type="radio" name="topic" value="academicStress" id="topic"> Academic Stress </p>
+<p class="nobottommargin"><input type="radio" name="topic" value="relationships" id="topic"> Relationships </p>
+
+<p id="studentIdHeader" class="bold">What is the first 5 digits of your student id?</p>
+<input type="text" placeholder="i.e. 11660" id="studentId"> 
+
+<p class="name">Username</h2>
+<input type="text" id="name"> 
+
+<input type="button" value="Join" id="join" style="display: none;" class="button">
+<input type="button" value="Find New Partner" id="leaveRoom" class="button"> 
+
+<div class="chatWindow">
+  <ul id="messages" visibility="hidden" style="visibility: visible;"></ul>
+  <form action="">
+    <input id="m" autocomplete="off" class="button"><button>Send</button>
+  </form>
+</div>
 </body>
 	<script src="https://code.jquery.com/jquery-3.2.0.min.js"></script>
 	<script src="/javascripts/jquery.mCustomScrollbar.concat.min.js"></script>
