@@ -13,16 +13,18 @@
       form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
       form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
       form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
+      div.chatWindow { padding-bottom: 50px; margin-top: 20px; }
       p.class{  }
       #messages { list-style-type: none; margin: 0; padding: 0; }
       #messages li { padding: 5px 10px; }
       #messages li:nth-child(odd) { background: #eee; }
+
 	  </style>
 
 </head>
 <body>
-  <h2 id="topicsHeader">Topics </h2>
   <br>
+  <h2 id="topicsHeader">Topics </h2>
 	<ul><input type="radio" name = "topic" value="depression" id="topic" /> Depression</ul>
 	<ul><input type="radio" name = "topic" value="academicStress" id="topic" /> Academic Stress </ul>
 	<ul><input type="radio" name = "topic" value="relationships" id="topic"/> Relationships </ul>
@@ -34,12 +36,12 @@
 	<input type="text" id="name"/> 
 	<input type="button" value="Join" id="join"/>
 	<input type="button" value="Find New Partner" id="leaveRoom"/> 
-<div class = "chatWindow">
-<ul id="messages" visibility='hidden'></ul>
-    <form action="">
-      <input id="m" autocomplete="off" /><button>Send</button>
-    </form>
-</div>
+  <div class="chatWindow" id = "chatWindow" visibility = "hidden">
+    <ul id="messages" visibility='hidden'></ul>
+        <form action="">
+          <input id="m" autocomplete="off" /><button>Send</button>
+        </form>
+  </div>
 </body>
 	<script src="https://code.jquery.com/jquery-3.2.0.min.js"></script>
 	<script src="/javascripts/jquery.mCustomScrollbar.concat.min.js"></script>
@@ -50,82 +52,82 @@
 		var username = '';
 		var roomId = '';
     var peerName = "Anonymous";
-	  	var socket = io(window.location.hostname);
-	    socket.on('waitingForPartner', function(message){
-	    	alert(message)
-	    })
+  	var socket = io(window.location.hostname);
+    socket.on('waitingForPartner', function(message){
+    	alert(message)
+    })
 
-      socket.on('connect', function (data) { // we are connected, should send our name
-        connected = true;
+    socket.on('connect', function (data) { // we are connected, should send our name
+      connected = true;
+    });
+
+    socket.on('verificationFailed', function(){
+      alert("Your CUHK ID is not valid, please try again");
+    })
+
+    socket.on('greeting', function(message, id){
+    	console.log("The server says... ", message, " I was created by Parker Place, www.parkerlplace.com")
+    })
+
+    socket.on('chatStart', function(data) { 
+      $("#chatWindow").css('visibility', 'visible')
+      $("#join").hide();
+	    roomId = data.roomId;
+      peerName = data.peerName;
+	    alert("You've been paired with "+ peerName);
+		});
+
+		socket.on('chatEnd', function(msg) {
+        $('#messages').append($('<li>').text(msg));
+        $("#join").show();
+    		socket.leave(roomId);
+    		roomId = '';
+		});
+    socket.on('message', function(msg){ //{message, senderId}
+      $('#messages').append($('<li>').text(peerName +": "+msg.message));
+    });
+
+    $("#join").click(function(){
+      if (!$("input[name='topic']:checked").val()){
+        $("#topicsHeader").text('Please choose a discussion topic. If you\'re not sure, choose "other"').css('color', 'red')
+        return false
+      }
+      if(!$.trim($("#name").val())){
+        alert("Please enter a username");
+        return false;
+      }
+    	socket.emit('join', {name: $("#name").val(), studentId: $("#studentId").val(), topic: $("#topic").val()})
+    })
+    $("#leaveRoom").click(function(){
+      if (connected) {
+            socket.emit('leaveRoom');
+            socket.leave(roomId);
+            roomId = '';
+      }
+    })
+
+    $(function () {
+      $('form').submit(function(){
+        $('#messages').append($('<li>').text(username + ": " + $('#m').val()));
+        socket.emit('message', {"message": $('#m').val(), "senderId": socket.id});
+        $('#m').val('');
+        return false;
       });
-
-      socket.on('verificationFailed', function(){
-        alert("Your CUHK ID is not valid, please try again");
-      })
-
-	    socket.on('greeting', function(message, id){
-	    	console.log("The server says... ", message, " I was created by Parker Place, www.parkerlplace.com")
-	    })
-
-	    socket.on('chatStart', function(data) { 
-        $("#messages").css('visibility', 'visible')
-        $("#join").hide();
-		    roomId = data.roomId;
-        peerName = data.peerName;
-		    alert("You've been paired with "+ peerName);
-  		});
-
-  		socket.on('chatEnd', function(msg) {
-          $('#messages').append($('<li>').text(msg));
-          $("#join").show();
-      		socket.leave(roomId);
-      		roomId = '';
-  		});
-      socket.on('message', function(msg){ //{message, senderId}
-        $('#messages').append($('<li>').text(peerName +": "+msg.message));
-      });
-
-	    $("#join").click(function(){
-        if (!$("input[name='topic']:checked").val()){
-          $("#topicsHeader").text('Please choose a discussion topic. If you\'re not sure, choose "other"').css('color', 'red')
-          return false
-        }
-        if(!$.trim($("#name").val())){
-          alert("Please enter a username");
-          return false;
-        }
-	    	socket.emit('join', {name: $("#name").val(), studentId: $("#studentId").val(), topic: $("#topic").val()})
-	    })
-	    $("#leaveRoom").click(function(){
-        if (connected) {
-              socket.emit('leaveRoom');
-              socket.leave(roomId);
-              roomId = '';
-        }
-	    })
-
-      $(function () {
-        $('form').submit(function(){
-          $('#messages').append($('<li>').text(username + ": " + $('#m').val()));
-          socket.emit('message', {"message": $('#m').val(), "senderId": socket.id});
-          $('#m').val('');
-          return false;
-        });
-      });
-      $('#name').blur(function() { //validates username
-         if(!$.trim($("#name").val())) { // zero-length string AFTER a trim
-            $(".name").text('Please enter a username, it can be anything!').css('color', 'red');
-         }
-         else{
-          username = $("#name").val();
-          $(".name").text("Username")
-         }
-      });
-      $('#studentIdHeader').blur(function() { //validates username
-         if($.trim($("#studentIdHeader").length !== 5)) { // zero-length string AFTER a trim
-            $("#studentIdHeader").text('Please enter the first 5 digits of your CUHK ID').css('color', 'red');
-         }
-      });
+    });
+    $('#name').blur(function() { //validates username
+       if(!$.trim($("#name").val())) { // zero-length string AFTER a trim
+          $(".name").text('Please enter a username, it can be anything!').css('color', 'red');
+       }
+       else{
+        username = $("#name").val();
+        $(".name").text("Username")
+       }
+    });
+    $('#studentIdHeader').blur(function() { //validates username
+       if($.trim($("#studentIdHeader").length !== 5)) { // zero-length string AFTER a trim
+          $("#studentIdHeader").text('Please enter the first 5 digits of your CUHK ID').css('color', 'red');
+       }
+    });
 
 	</script>
 </html>
