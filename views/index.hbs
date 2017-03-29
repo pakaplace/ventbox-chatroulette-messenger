@@ -48,7 +48,6 @@
 		var username = '';
 		var roomId = '';
     var peerName;
-      console.log("PORT", port, " window , ", window.location.hostname)
 	  	var socket = io(window.location.hostname);
 	    socket.on('waitingForPartner', function(message){
 	    	alert(message)
