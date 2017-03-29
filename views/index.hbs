@@ -21,17 +21,19 @@
 
 </head>
 <body>
-  <p class="topics"> Topics </p>
+  <h2 id="topicsHeader">Topics </h2>
+  <br>
 	<ul><input type="radio" name = "topic" value="depression" id="topic" /> Depression</ul>
 	<ul><input type="radio" name = "topic" value="academicStress" id="topic" /> Academic Stress </ul>
 	<ul><input type="radio" name = "topic" value="relationships" id="topic"/> Relationships </ul>
 	<ul><input type="radio" name = "topic" value="other" id="topic"/> Everything else</ul>
-	<p>What is the first 5 digits of your student id?</p>
+  <br>
+	<h2 id = "studentIdHeader">What is the first 5 digits of your student id?</h2>
 	<input type="text" placeholder="i.e. 11660" id="studentId"/> 
-	<p class = "name">Username</p>
+	<h2 class = "name">Username</h2>
 	<input type="text" id="name"/> 
 	<input type="button" value="Join" id="join"/>
-	<input type="button" value="Leave room" id="leaveRoom"/> 
+	<input type="button" value="Find New Partner" id="leaveRoom"/> 
 <div class = "chatWindow">
 <ul id="messages" visibility='hidden'></ul>
     <form action="">
@@ -62,7 +64,7 @@
       })
 
 	    socket.on('greeting', function(message, id){
-	    	console.log("The server says... ", message, " and your socket id is... ", id)
+	    	console.log("The server says... ", message, " I was created by Parker Place, www.parkerlplace.com")
 	    })
 
 	    socket.on('chatStart', function(data) { 
@@ -80,22 +82,19 @@
       		roomId = '';
   		});
       socket.on('message', function(msg){ //{message, senderId}
-        console.log("client side message", msg.message)
-        $('#messages').append($('<li>').text(msg.message));
+        $('#messages').append($('<li>').text(peerName +": "+msg.message));
       });
 
 	    $("#join").click(function(){
         if (!$("input[name='topic']:checked").val()){
-          $(".topics").text('Please choose a discussion topic. If you\'re not sure, choose "other"').css('color', 'red')
+          $("#topicsHeader").text('Please choose a discussion topic. If you\'re not sure, choose "other"').css('color', 'red')
           return false
         }
         if(!$.trim($("#name").val())){
           alert("Please enter a username");
           return false;
         }
-	    	console.log("#JOIN~~~~~~~~~~~~~")
 	    	socket.emit('join', {name: $("#name").val(), studentId: $("#studentId").val(), topic: $("#topic").val()})
-	    	console.log("JOIN emitted", $("#name").val()," ", $("#studentId").val() )
 	    })
 	    $("#leaveRoom").click(function(){
         if (connected) {
@@ -122,5 +121,11 @@
           $(".name").text("Username")
          }
       });
+      $('#studentIdHeader').blur(function() { //validates username
+         if($.trim($("#studentIdHeader").length !== 5)) { // zero-length string AFTER a trim
+            $("#studentIdHeader").text('Please enter the first 5 digits of your CUHK ID').css('color', 'red');
+         }
+      });
+
 	</script>
 </html>

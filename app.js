@@ -69,7 +69,7 @@ function isEmpty(obj) {
 var findPartnerSocket = function(socket){
   var client =allUsers[socket.id]
   var peer;
-  if(socket.verified && !isEmpty(queue)){ //queue will be full every time
+  if(socket.verified && !isEmpty(queue)){
     console.log("inside queue~~~~   ", queue)
       var match = false;
       for(id in queue){
@@ -101,8 +101,9 @@ var findPartnerSocket = function(socket){
       peer.emit("chatStart", {'peerName': allUsers[socket.id].name, 'roomId': roomId})
     }
   }
-  else{
+  else{ //if queue is empty do this
     console.log("pushing socket " + socket.id, " to queue")
+    socket.emit("waitingForPartner", "Waiting for another person to join. One moment please")
     queue[socket.id] = socket
   }
 }
@@ -149,7 +150,6 @@ io.on('connection', function (socket) {
       socket.broadcast.to(roomId).emit("chatEnd", "Chat has ended, finding you a new partner...");
       var peerID = roomId.split('&');
       peerID = peerID[0] === socket.id ? peerID[1] : peerID[0];
-      // disconnect socket that left, find peer for lonely socket
       findPartnerSocket(allUsers[peerID]);
   });
 });
