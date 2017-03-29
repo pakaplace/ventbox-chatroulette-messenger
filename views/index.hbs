@@ -49,7 +49,7 @@
 		var connected = false;
 		var username = '';
 		var roomId = '';
-    var peerName;
+    var peerName = "Anonymous";
 	  	var socket = io(window.location.hostname);
 	    socket.on('waitingForPartner', function(message){
 	    	alert(message)
@@ -72,13 +72,13 @@
         $("#join").hide();
 		    roomId = data.roomId;
         peerName = data.peerName;
-		    alert("Partner has been found"); // some method which will show chat window
+		    alert("You've been paired with "+ peerName);
   		});
 
   		socket.on('chatEnd', function(msg) {
           $('#messages').append($('<li>').text(msg));
           $("#join").show();
-      		socket.leave(roomId); // can leavefrom both server and client, client is better
+      		socket.leave(roomId);
       		roomId = '';
   		});
       socket.on('message', function(msg){ //{message, senderId}
@@ -106,7 +106,7 @@
 
       $(function () {
         $('form').submit(function(){
-          $('#messages').append($('<li>').text($('#m').val()));
+          $('#messages').append($('<li>').text(username + ": " + $('#m').val()));
           socket.emit('message', {"message": $('#m').val(), "senderId": socket.id});
           $('#m').val('');
           return false;
