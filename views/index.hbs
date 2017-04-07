@@ -4,17 +4,18 @@
 	<meta charset="UTF-8">
 	  <title>Welcome to {{title}}</title>
 	  <p>Select a topic to talk about and we'll find you a partner</p>
-<!-- 	  <link rel="stylesheet" href="/stylesheets/jquery.mCustomScrollbar.css" />
- --><!-- 	  <link rel="stylesheet" type="text/css" href="/stylesheets/style.css"/>
- -->
+	  <link rel="stylesheet" href="/stylesheets/jquery.mCustomScrollbar.css" />
+    <link rel="stylesheet" type="text/css" href="/stylesheets/style.css"/>
+
+ <link rel='stylesheet' id='infinity-fonts-css'  href='//fonts.googleapis.com/css?family=Cormorant+Garamond%3A400%2C400i%2C700%7CRaleway%3A700&#038;ver=1.1.2' type='text/css' media='all' />
+
 	  <style>
 	  * { margin: 0; padding: 0; box-sizing: border-box; }
       body { font: 13px Helvetica, Arial; }
       form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
       form input { border: 0; padding: 10px; width: 90%; margin-right: .5%; }
       form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
-      div.chatWindow { padding-bottom: 50px; margin-top: 20px;
-      }
+      div.chatWindow { padding-bottom: 50px; margin-top: 20px; }
       p.class{  }
       #messages { list-style-type: none; margin: 0; padding: 0; }
       #messages li { padding: 5px 10px; }
@@ -48,7 +49,7 @@
 	<script src="/javascripts/jquery.mCustomScrollbar.concat.min.js"></script>
 	<script src="/socket.io/socket.io.js"></script>
 <!-- 	<script type="text/javascript" src="/javascripts/chat.js"></script>
- -->	<script>
+	<script>
 		var connected = false;
 		var username = '';
 		var roomId = '';
